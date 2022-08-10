@@ -192,7 +192,7 @@ def k_mean_on_df(data_array: object) -> None:
 def present_k_mean_graph(data_array, k: int, title: str = "k mean graph", x_label: str = "x", y_label: str = "y"):
     kmeans = KMeans(n_clusters=k, random_state=42)
     y_kmeans = kmeans.fit_predict(data_array)
-    plt.plot()
+    plt.figure()
     plt.scatter(data_array[y_kmeans == 0, 0], data_array[y_kmeans == 0, 1], s=100, c='red', label='Cluster 1')
     plt.scatter(data_array[y_kmeans == 1, 0], data_array[y_kmeans == 1, 1], s=100, c='blue', label='Cluster 2')
     plt.scatter(data_array[y_kmeans == 2, 0], data_array[y_kmeans == 2, 1], s=100, c='green', label='Cluster 3')
@@ -205,6 +205,7 @@ def present_k_mean_graph(data_array, k: int, title: str = "k mean graph", x_labe
     plt.ylabel(y_label)
     plt.legend()
     plt.show()
+    plt.waitforbuttonpress()
 
 
 def get_k_by_elbow_prediction(data_array) -> int:
@@ -350,26 +351,13 @@ def run_q_1():
     # return df1, df2
 
 
-#
-# df = pd.DataFrame.from_dict({'Name': ['May21', True, False, -5, 'Hello', 'Girl90', 90],
-#                              'Volume': [23, 12, 11, 34, 56, 1, 1],
-#                              'Value': [21321, 12311, 4435, 3, 2, 454, 654654]})
-# df1 = pd.DataFrame(df)
-# to_be_dropped = []
-# df['Name'] = df['Name'].replace([True, False], 1)
-# # df['Name'] = df['Name'].drop([item for item in df['Name'] if type(item) == int])
-# for i in df.index:
-#     if is_numeric_dtype(df.at[i, 'Name']):
-#         to_be_dropped.append(i)
-# for i in list(reversed(to_be_dropped)):
-#     df = df.drop(df.index[i])
-#
-#
-# print(df)
+if __name__ == "__main__":
+    config = load_config('data_science_config.json')
+    df1, df2 = run_q_1()
+    run_q_2(df1, df2)
+    run_q_3(df1, df2)
+    run_q_4(df1, df2)
 
-config = load_config('data_science_config.json')
-df1, df2 = run_q_1()
-run_q_2(df1, df2)
-run_q_3(df1, df2)
-run_q_4(df1, df2)
-input()
+config = {}
+
+
