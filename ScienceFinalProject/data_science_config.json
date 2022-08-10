@@ -1,15 +1,15 @@
 {
   "data_frames": [
     {
-      "path": "/Users/nir.chodorov/Documents/full_data copy.csv",
+      "path": "/Users/nir.chodorov/Downloads/full_data_new.csv",
       "columns_to_normalize": [
-        
+        "biweekly_cases"
       ]
     },
     {
-      "path": "/Users/nir.chodorov/Documents/county_level_cases_n.csv",
+      "path": "/Users/nir.chodorov/Downloads/county_level_cases_n.csv",
       "columns_to_normalize": [
-        "deaths"
+        "deaths_per_100000"
       ]
     }
   ]

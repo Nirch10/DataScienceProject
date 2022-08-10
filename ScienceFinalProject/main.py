@@ -31,8 +31,8 @@ def get_total_missing_percentage(data_frame: pd.DataFrame) -> float:
 def validate_file(data_frame: pd.DataFrame) -> bool:
     miss_percentage = get_total_missing_percentage(data_frame)
     # TODO :: remove comment before real run
-    # if miss_percentage < 10:
-    #     return False
+    if miss_percentage < 10:
+        return False
     # if miss_percentage == 0 or contains_valid_formats(data_frame):
     #     return False
     return True
@@ -55,8 +55,7 @@ def get_numeric_column_invalid_rows(column_name, data_frame):
     invalid_row_indexes = []
     for index in data_frame.index:
         if (not pd.isnull(data_frame.at[index, column_name])) and (
-                type(data_frame.at[index, column_name]) == str or type(
-            data_frame.at[index, column_name]) == bool):
+                type(data_frame.at[index, column_name]) == str or type(data_frame.at[index, column_name]) == bool):
             invalid_row_indexes.append(index)
     return invalid_row_indexes
 
@@ -66,9 +65,8 @@ def get_str_column_invalid_rows(column_name, data_frame):
     for index in data_frame.index:
         # invalid type (type float for unknown reason)
         if (not pd.isnull(data_frame.at[index, column_name])) and (
-                type(data_frame.at[index, column_name]) == int or type(
-            data_frame.at[index, column_name]) == float or type(
-            data_frame.at[index, column_name]) == bool):
+                type(data_frame.at[index, column_name]) == int or type(data_frame.at[index, column_name]) == float or
+                type(data_frame.at[index, column_name]) == bool):
             invalid_row_indexes.append(index)
     return invalid_row_indexes
 
@@ -153,6 +151,7 @@ def clean_column_invalid_str_type_data(data_frame: pd.DataFrame, column_name: st
     invalid_row_indexes = get_str_column_invalid_rows(column_name, data_frame)
     for index in list(reversed(invalid_row_indexes)):
         data_frame = data_frame.drop(data_frame.index[index])
+    data_frame[column_name] = data_frame[column_name].astype(str)
     return data_frame
 
 
@@ -193,13 +192,13 @@ def present_k_mean_graph(data_array, k: int, title: str = "k mean graph", x_labe
     kmeans = KMeans(n_clusters=k, random_state=42)
     y_kmeans = kmeans.fit_predict(data_array)
     plt.figure()
-    plt.scatter(data_array[y_kmeans == 0, 0], data_array[y_kmeans == 0, 1], s=100, c='red', label='Cluster 1')
-    plt.scatter(data_array[y_kmeans == 1, 0], data_array[y_kmeans == 1, 1], s=100, c='blue', label='Cluster 2')
-    plt.scatter(data_array[y_kmeans == 2, 0], data_array[y_kmeans == 2, 1], s=100, c='green', label='Cluster 3')
-    plt.scatter(data_array[y_kmeans == 3, 0], data_array[y_kmeans == 3, 1], s=100, c='cyan', label='Cluster 4')
-    plt.scatter(data_array[y_kmeans == 4, 0], data_array[y_kmeans == 4, 1], s=100, c='magenta', label='Cluster 5')
-    plt.scatter(data_array[y_kmeans == 5, 0], data_array[y_kmeans == 5, 1], s=100, c='yellow', label='Cluster 6')
-    plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=200, c='black', label='Centroids')
+    plt.scatter(data_array[y_kmeans == 0, 0], data_array[y_kmeans == 0, 1], s=30, c='red', label='Cluster 1')
+    plt.scatter(data_array[y_kmeans == 1, 0], data_array[y_kmeans == 1, 1], s=30, c='blue', label='Cluster 2')
+    plt.scatter(data_array[y_kmeans == 2, 0], data_array[y_kmeans == 2, 1], s=30, c='green', label='Cluster 3')
+    plt.scatter(data_array[y_kmeans == 3, 0], data_array[y_kmeans == 3, 1], s=30, c='cyan', label='Cluster 4')
+    plt.scatter(data_array[y_kmeans == 4, 0], data_array[y_kmeans == 4, 1], s=30, c='magenta', label='Cluster 5')
+    plt.scatter(data_array[y_kmeans == 5, 0], data_array[y_kmeans == 5, 1], s=30, c='yellow', label='Cluster 6')
+    plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='black', label='Centroids')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -240,9 +239,10 @@ def linear_regression(x: list, y: list) -> None:
 
 
 def run_q_4(df1: pd.DataFrame, df2: pd.DataFrame) -> None:
+    k_mean_on_df(df2[['fips_code', 'deaths_per_100000']].values)
     # k_mean_on_df(df1.iloc[:, [4, 5]].values)
-    # k_mean_on_df(df2.iloc[:, [6, 7]].values)
-    linear_regression(df1['weekly_cases'], df1['biweekly_cases'])
+    # k_mean_on_df(df2.iloc[:, [9, 10]].values)
+    linear_regression(df1['total_cases'], df1['total_deaths'])
     linear_regression(df2['deaths_per_100000'], df2['confirmed_per_100000'])
 
 
@@ -355,9 +355,7 @@ if __name__ == "__main__":
     config = load_config('data_science_config.json')
     df1, df2 = run_q_1()
     run_q_2(df1, df2)
-    run_q_3(df1, df2)
+    # run_q_3(df1, df2)
     run_q_4(df1, df2)
 
 config = {}
-
-
