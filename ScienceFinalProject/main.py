@@ -33,8 +33,8 @@ def validate_file(data_frame: pd.DataFrame) -> bool:
     # TODO :: remove comment before real run
     if miss_percentage < 10:
         return False
-    # if miss_percentage == 0 or contains_valid_formats(data_frame):
-    #     return False
+    if contains_valid_formats(data_frame):
+        return False
     return True
 
 
@@ -54,20 +54,39 @@ def contains_valid_formats(data_frame: pd.DataFrame) -> bool:
 def get_numeric_column_invalid_rows(column_name, data_frame):
     invalid_row_indexes = []
     for index in data_frame.index:
-        if (not pd.isnull(data_frame.at[index, column_name])) and (
-                type(data_frame.at[index, column_name]) == str or type(data_frame.at[index, column_name]) == bool):
+        try:
+            float(data_frame.at[index, column_name])
+        except ValueError:
             invalid_row_indexes.append(index)
+        #
+        #
+        # if (not pd.isnull(data_frame.at[index, column_name])) and (
+        #         type(data_frame.at[index, column_name]) == str or type(data_frame.at[index, column_name]) == bool):
+        #     invalid_row_indexes.append(index)
     return invalid_row_indexes
 
 
 def get_str_column_invalid_rows(column_name, data_frame):
     invalid_row_indexes = []
     for index in data_frame.index:
-        # invalid type (type float for unknown reason)
-        if (not pd.isnull(data_frame.at[index, column_name])) and (
-                type(data_frame.at[index, column_name]) == int or type(data_frame.at[index, column_name]) == float or
-                type(data_frame.at[index, column_name]) == bool):
+        row = data_frame.at[index, column_name]
+        try:
+            int(float(row))
+        except ValueError:
+            if row == 'True' or row == 'False':
+                invalid_row_indexes.append(index)
+            elif row == 'nan' or type(row) == float:
+                data_frame.loc[index, column_name] = np.nan
+            else:
+                pass
+        else:
             invalid_row_indexes.append(index)
+        #
+        # # invalid type (type float for unknown reason)
+        # if (not pd.isnull(data_frame.at[index, column_name])) and (
+        #         type(data_frame.at[index, column_name]) == int or type(data_frame.at[index, column_name]) == float or
+        #         type(data_frame.at[index, column_name]) == bool):
+        #     invalid_row_indexes.append(index)
     return invalid_row_indexes
 
 
@@ -142,6 +161,7 @@ def clean_column_invalid_numeric_type_data(data_frame: pd.DataFrame, column_name
     invalid_row_indexes = get_numeric_column_invalid_rows(column_name, data_frame)
     for index in list(reversed(invalid_row_indexes)):
         data_frame = data_frame.drop(data_frame.index[index])
+    data_frame[column_name] = data_frame[column_name].astype(np.number)
     return data_frame
 
 
@@ -304,23 +324,23 @@ def run_q_3(df1: pd.DataFrame, df2: pd.DataFrame):
 def run_q_2(df1: pd.DataFrame, df2: pd.DataFrame):
     # cleaning column invalid types rows
     for column in df1.select_dtypes(include=np.number).columns.tolist():
-        clean_column_invalid_numeric_type_data(df1, column)
+        df1 = clean_column_invalid_numeric_type_data(df1, column)
     for column in df2.select_dtypes(include=np.number).columns.tolist():
-        clean_column_invalid_numeric_type_data(df2, column)
+        df2 = clean_column_invalid_numeric_type_data(df2, column)
     for column in df1.select_dtypes(include=np.object).columns.tolist():  # object refers to str -> no type str in df
-        clean_column_invalid_str_type_data(df1, column)
+        df1 = clean_column_invalid_str_type_data(df1, column)
     for column in df2.select_dtypes(include=np.object).columns.tolist():
-        clean_column_invalid_str_type_data(df2, column)
+        df2 = clean_column_invalid_str_type_data(df2, column)
 
     # make sure no nulls (nan) in df
     for column in df1.select_dtypes(include=np.number).columns.tolist():
-        update_number_null_values(df1, column)
+        df1 = update_number_null_values(df1, column)
     for column in df2.select_dtypes(include=np.number).columns.tolist():
-        update_number_null_values(df2, column)
+        df2 = update_number_null_values(df2, column)
     for column in df1.select_dtypes(include=np.object).columns.tolist():
-        update_str_null_values(df1, column)
+        df1 = update_str_null_values(df1, column)
     for column in df2.select_dtypes(include=np.object).columns.tolist():
-        update_str_null_values(df2, column)
+        df2 = update_str_null_values(df2, column)
 
     # Normalizing columns based on columns received in config file
     columns_to_normalize_df1 = config['data_frames'][0]['columns_to_normalize']
