@@ -171,7 +171,7 @@ def clean_column_invalid_str_type_data(data_frame: pd.DataFrame, column_name: st
     invalid_row_indexes = get_str_column_invalid_rows(column_name, data_frame)
     for index in list(reversed(invalid_row_indexes)):
         data_frame = data_frame.drop(data_frame.index[index])
-    data_frame[column_name] = data_frame[column_name].astype(str)
+    # data_frame[column_name] = data_frame[column_name].astype(str)
     return data_frame
 
 
@@ -185,6 +185,7 @@ def update_number_null_values(data_frame: pd.DataFrame, column_name: str) -> pd.
 def update_str_null_values(data_frame: pd.DataFrame, column_name: str) -> pd.DataFrame:
     frequent_value = data_frame[column_name].value_counts().idxmax()
     data_frame[column_name] = data_frame[column_name].fillna(value=frequent_value)
+    data_frame.replace(r'^\s*$', frequent_value, regex=True)
     return data_frame
 
 
@@ -212,19 +213,37 @@ def present_k_mean_graph(data_array, k: int, title: str = "k mean graph", x_labe
     kmeans = KMeans(n_clusters=k, random_state=42)
     y_kmeans = kmeans.fit_predict(data_array)
     plt.figure()
-    plt.scatter(data_array[y_kmeans == 0, 0], data_array[y_kmeans == 0, 1], s=30, c='red', label='Cluster 1')
-    plt.scatter(data_array[y_kmeans == 1, 0], data_array[y_kmeans == 1, 1], s=30, c='blue', label='Cluster 2')
-    plt.scatter(data_array[y_kmeans == 2, 0], data_array[y_kmeans == 2, 1], s=30, c='green', label='Cluster 3')
-    plt.scatter(data_array[y_kmeans == 3, 0], data_array[y_kmeans == 3, 1], s=30, c='cyan', label='Cluster 4')
-    plt.scatter(data_array[y_kmeans == 4, 0], data_array[y_kmeans == 4, 1], s=30, c='magenta', label='Cluster 5')
-    plt.scatter(data_array[y_kmeans == 5, 0], data_array[y_kmeans == 5, 1], s=30, c='yellow', label='Cluster 6')
-    plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='black', label='Centroids')
+    plt.scatter(data_array[y_kmeans == 0, 0], data_array[y_kmeans == 0, 1], s=5, c='red', label='Cluster 1')
+    plt.scatter(data_array[y_kmeans == 1, 0], data_array[y_kmeans == 1, 1], s=5, c='blue', label='Cluster 2')
+    plt.scatter(data_array[y_kmeans == 2, 0], data_array[y_kmeans == 2, 1], s=5, c='green', label='Cluster 3')
+    plt.scatter(data_array[y_kmeans == 3, 0], data_array[y_kmeans == 3, 1], s=5, c='cyan', label='Cluster 4')
+    plt.scatter(data_array[y_kmeans == 4, 0], data_array[y_kmeans == 4, 1], s=5, c='magenta', label='Cluster 5')
+    plt.scatter(data_array[y_kmeans == 5, 0], data_array[y_kmeans == 5, 1], s=5, c='yellow', label='Cluster 6')
+    plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=50, c='black', label='Centroids')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
     plt.show()
     plt.waitforbuttonpress()
+
+
+def single_pt_haversine(lat, lng, degrees=True):
+    """
+    'Single-point' Haversine: Calculates the great circle distance
+    between a point on Earth and the (0, 0) lat-long coordinate
+    """
+    r = 6371 # Earth's radius (km). Have r = 3956 if you want miles
+
+    # Convert decimal degrees to radians
+    if degrees:
+        lat, lng = map(math.radians, [lat, lng])
+
+    # 'Single-point' Haversine formula
+    a = math.sin(lat / 2) ** 2 + math.cos(lat) * math.sin(lng / 2) ** 2
+    d = 2 * r * math.asin(math.sqrt(a))
+
+    return d
 
 
 def get_k_by_elbow_prediction(data_array) -> int:
@@ -259,9 +278,12 @@ def linear_regression(x: list, y: list) -> None:
 
 
 def run_q_4(df1: pd.DataFrame, df2: pd.DataFrame) -> None:
-    k_mean_on_df(df2[['fips_code', 'deaths_per_100000']].values)
-    # k_mean_on_df(df1.iloc[:, [4, 5]].values)
-    # k_mean_on_df(df2.iloc[:, [9, 10]].values)
+    df2['harvesine_distance'] = [single_pt_haversine(x, y) for x, y in zip(df2.lon, df2.lat)]
+    df2['pop_percentage'] = [(x / y) for x, y in zip(df2.confirmed, df2.total_population)]
+    df2['death_percentage'] = [(x / y) for x, y in zip(df2.deaths, df2.total_population)]
+    k_mean_on_df(df2[['harvesine_distance', 'death_percentage']].values)
+    k_mean_on_df(df2[['harvesine_distance', 'pop_percentage']].values)
+    k_mean_on_df(df1[['weekly_cases', 'total_deaths']].values)
     linear_regression(df1['total_cases'], df1['total_deaths'])
     linear_regression(df2['deaths_per_100000'], df2['confirmed_per_100000'])
 
@@ -333,15 +355,16 @@ def run_q_2(df1: pd.DataFrame, df2: pd.DataFrame):
         df2 = clean_column_invalid_str_type_data(df2, column)
 
     # make sure no nulls (nan) in df
-    for column in df1.select_dtypes(include=np.number).columns.tolist():
-        df1 = update_number_null_values(df1, column)
-    for column in df2.select_dtypes(include=np.number).columns.tolist():
-        df2 = update_number_null_values(df2, column)
+    # for column in df1.select_dtypes(include=np.number).columns.tolist():
+    #     df1 = update_number_null_values(df1, column)
+    # for column in df2.select_dtypes(include=np.number).columns.tolist():
+    #     df2 = update_number_null_values(df2, column)
+    df1 = df1.fillna(df1.mean())
+    df2 = df2.fillna(df2.mean())
     for column in df1.select_dtypes(include=np.object).columns.tolist():
         df1 = update_str_null_values(df1, column)
     for column in df2.select_dtypes(include=np.object).columns.tolist():
         df2 = update_str_null_values(df2, column)
-
     # Normalizing columns based on columns received in config file
     columns_to_normalize_df1 = config['data_frames'][0]['columns_to_normalize']
     columns_to_normalize_df2 = config['data_frames'][1]['columns_to_normalize']
@@ -354,6 +377,7 @@ def run_q_2(df1: pd.DataFrame, df2: pd.DataFrame):
     # remove all duplicate lines
     handle_duplicates(data_frame=df1)
     handle_duplicates(data_frame=df2)
+    return df1, df2
 
 
 def run_q_1():
@@ -374,8 +398,8 @@ def run_q_1():
 if __name__ == "__main__":
     config = load_config('data_science_config.json')
     df1, df2 = run_q_1()
-    run_q_2(df1, df2)
-    # run_q_3(df1, df2)
+    df1, df2 = run_q_2(df1, df2)
+    run_q_3(df1, df2)
     run_q_4(df1, df2)
 
 config = {}

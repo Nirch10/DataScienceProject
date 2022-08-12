@@ -9,7 +9,6 @@
     {
       "path": "/Users/nir.chodorov/Downloads/county_level_cases_n.csv",
       "columns_to_normalize": [
-        "deaths_per_100000"
       ]
     }
   ]
